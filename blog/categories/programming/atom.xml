@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Programming | Bret Kuhns]]></title>
+  <link href="http://bkuhns.github.io/blog/categories/programming/atom.xml" rel="self"/>
+  <link href="http://bkuhns.github.io/"/>
+  <updated>2013-10-20T15:36:20-04:00</updated>
+  <id>http://bkuhns.github.io/</id>
+  <author>
+    <name><![CDATA[Bret Kuhns]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Making Wrong Code <s>Look</s> Wrong]]></title>
+    <link href="http://bkuhns.github.io/blog/2013/10/07/making-wrong-code-wrong/"/>
+    <updated>2013-10-07T20:43:00-04:00</updated>
+    <id>http://bkuhns.github.io/blog/2013/10/07/making-wrong-code-wrong</id>
+    <content type="html"><![CDATA[<p>Years ago, <a href="http://www.joelonsoftware.com/">Joel Spolsky</a> wrote an article about <a href="http://www.joelonsoftware.com/articles/Wrong.html">Making Wrong Code Look Wrong</a>. He proposes using conventions to make code that&rsquo;s wrong, more visibly wrong. As an example, Spolsky suggests using a <code>us</code> prefix on variables representing unsafe strings that come from the user which haven&rsquo;t yet been sanitized. So, instead of:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="k">auto</span> <span class="n">name</span> <span class="o">=</span> <span class="n">request</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">name</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;);</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>You would write:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="k">auto</span> <span class="n">usName</span> <span class="o">=</span> <span class="n">request</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">name</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;);</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>Now, Spolsky argues, you can more immediately see that <code>usName</code> isn&rsquo;t safe to print or store. If code outputs <code>usName</code>, a programmer can more readily see the error. It&rsquo;s no longer necessary to track down the entire lineage of a string to see whether it has been cleaned up along it&rsquo;s lifetime. The story is in the name.</p>
+
+<p>But, couldn&rsquo;t we do better? Why leave the checking up to fallible programmers' eyes? Programmers make small mistakes all the time that are quickly caught by their compilers. Perhaps this is another situation we could leave to the infallible compiler.</p>
+
+<p>Most statically typed languages allow for the creation of user-defined types. A type can be created that either seamlessly blends with compatible types, or that refuses to mingle with other types. If a programmer accidentally writes code that combines incompatible types, the code will fail to compile. Instead of a tribal naming convention that must be passed down through generations of programmers on a team, we can utilize the language to strictly enforce safety.</p>
+
+<p>Consider the following (C++) example:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="k">class</span> <span class="nc">unsafe_string</span> <span class="p">{</span>
+</span><span class='line'><span class="k">public</span><span class="o">:&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">unsafe_string</span><span class="p">(</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">str</span> <span class="p">)</span>
+</span><span class='line'>    <span class="o">:</span> <span class="n">str_</span><span class="p">(</span> <span class="n">std</span><span class="o">::</span><span class="n">move</span><span class="p">(</span><span class="n">str</span><span class="p">)</span> <span class="p">)</span>
+</span><span class='line'><span class="p">{}</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">[...]</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="k">private</span><span class="o">:&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="nl">str_:</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>Assume for brevity that <code>unsafe_string</code> acts as a regular value type. All we&rsquo;ve done here is wrap a <code>std::string</code>, but in such a way that the wrapping class is incompatible with any existing string class. The name of the class implies it is a string, but we can&rsquo;t immediately use it as if it were a string. For example,</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span> <span class="n">unsafe_string</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">Hello</span> <span class="n">World</span><span class="o">!&amp;</span><span class="n">rdquo</span><span class="p">;)</span> <span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>Will not compile. You may be thinking this isn&rsquo;t very useful: a string class that doesn&rsquo;t act like a string? <code>unsafe_string</code>&rsquo;s benefit, however, is in it&rsquo;s lack of behavior. We need only one member function for a complete story:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">unsafe_string</span><span class="o">::</span><span class="n">encoded</span><span class="p">()</span>
+</span><span class='line'><span class="p">{</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="k">return</span> <span class="o">::</span><span class="n">encode</span><span class="p">(</span><span class="n">str_</span><span class="p">);</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>Now we have a way of getting an encoded/safe string out of an <code>unsafe_string</code>. Our original <code>request()</code> function can now be better declared as:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="n">unsafe_string</span> <span class="n">request</span><span class="p">(</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">key</span> <span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>Notice the very first line in this post, which Spolsky would have suggested is unsafe, has suddenly become safe:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="k">auto</span> <span class="n">name</span> <span class="o">=</span> <span class="n">request</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">name</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;);</span>
+</span><span class='line'><span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span> <span class="n">name</span> <span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>  <span class="c1">//&amp;lt; Error!</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>The compiler won&rsquo;t let us make the mistake. We traded a convention that clutters names and can easily break by accident, with a technique that ensures compile-time enforcement of safety. If we want to print the requested name, then the compiler ensures we explicitly make the string safe:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span> <span class="n">name</span><span class="p">.</span><span class="n">encoded</span><span class="p">()</span> <span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>Making wrong code <em>look</em> wrong isn&rsquo;t good enough. Wrong code should be <em>verifiably</em> wrong.</p>
+]]></content>
+  </entry>
+  
+</feed>
